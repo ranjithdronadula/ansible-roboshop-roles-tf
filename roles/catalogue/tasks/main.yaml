@@ -1,0 +1,43 @@
+  - name: app setup
+    include_role:
+      name: common
+      tasks_from: app-setup
+  
+  - name: nodejs setup
+    include_role:
+       name: common
+       tasks_from: nodejs-setup
+    
+  - name: copy mongodb repo
+    ansible.builtin.copy:
+      src: mongo.repo
+      dest: /etc/yum.repos.d/mongo.repo
+
+  - name: Install mongodb client
+    ansible.builtin.package:
+      name: mongodb-mongosh
+      state: present
+   
+  - name: check products loaded or not
+    ansible.builtin.command: mongosh --host mongodb.ranjithdaws.site --eval 'db.getMongo().getDBNames().indexOf("catalogue")'
+    register: catalogue_output 
+
+  - name: print catalogue catalogue output 
+    ansible.builtin.debug:
+      msg: "{{ catalogue_output }}"
+
+  - name: load products
+    ansible.builtin.shell: mongosh --host mongodb.ranjithdaws.site < /app/db/master-data.js
+    when: catalogue_output.stdout | int < 0  # convert string to integer
+      
+  - name: systemd setup
+    include_role:             # tags not working here  and include roles run and find out error in exicution time
+       name: common
+       tasks_from: systemd.yaml 
+
+  # - name: Deployment
+  #   # tags:              # using tags where taks can be run 
+  #   # - deployment
+  #   import _role:        # it runs entire task and finf error before stat code
+  #     name: common
+  #     tasks_from: deployment.yaml         
