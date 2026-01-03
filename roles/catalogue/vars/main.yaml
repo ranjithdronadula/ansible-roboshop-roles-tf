@@ -1,1 +1,1 @@
-MONGODB_HOST: mongodb.ranjithdaws.site
+MONGODB_HOST: mongodb-{{ env }}.ranjithdaws.site
